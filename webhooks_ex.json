@@ -1,0 +1,8 @@
+{
+	"guilds": [
+		{
+			"webhookUrl": "WEBHOOK_URL",
+			"name": "GUILD_NAME (doesn't really matter, as it is only used in console)"
+		}
+	]
+}
