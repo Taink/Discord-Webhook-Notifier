@@ -7,6 +7,7 @@ const rl = readline.createInterface({
 	output: process.stdout
 });
 
+// request(urlPath, data)
 function request(urlPath, data="") {
 	let options = {
 		host: "discordapp.com",
@@ -54,37 +55,40 @@ function request(urlPath, data="") {
 	}
 }
 
+// getRandomInt(min, max)
 function getRandomInt(min, max) {
 	min = Math.ceil(min);
 	max = Math.floor(max);
 	return Math.floor(Math.random() * (max - min)) + min;
 }
 
+// capitalize(string)
 function capitalize(string) {
 	return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-function buildWebhookMsg(gameUrl) {
+// buildWebhookMsg(gameUrl[, activateEveryone])
+function buildWebhookMsg(gameUrl, activateEveryone=true) {
 	gameUrl = new URL(gameUrl);
 	let re = /^\/app\/([0-9]+)\/(\w+)\/$/i;
 	let path = gameUrl.pathname;
 	let gamename = "";
 	let provider = "";
+	let content = "";
 	let thumbnail;
 
 	if (gameUrl.href.startsWith("https://www.humblebundle.com/store/")) { // Humble Bundle
-		gamename = capitalize(path.substr(7));
+		gamename = path.substr(7);
 		provider = "Humble Bundle";
 		thumbnail = {"url": "https://i.imgur.com/hZVyC1Y.png"};
 		//console.log('The name of your game is: ' + gamename);
 	} else if (gameUrl.href.startsWith("https://www.gog.com/game/")) { // GOG
-		gamename = capitalize(path.substr(6));
+		gamename = path.substr(6);
 		provider = "GOG";
 		thumbnail = {"url": "https://i.imgur.com/fMC8MRV.png"};
 		//console.log('The name of your game is: ' + gamename);
 	} else if (gameUrl.href.startsWith("https://store.steampowered.com/app/")) { // Steam
-		gamename = capitalize(re.exec(path)[2]);
-		gamename = gamename.replace(/_/gi, ' ');
+		gamename = re.exec(path)[2];
 		let appid = re.exec(path)[1];
 		provider = "Steam";
 		thumbnail = {"url": `https://steamcdn-a.akamaihd.net/steam/apps/${appid}/header.jpg`}
@@ -96,9 +100,18 @@ function buildWebhookMsg(gameUrl) {
 		process.exit();
 	}
 
+	gamename = capitalize(gamename);
+	gamename = gamename.replace(/_/gi, ' ');
+
+	if (activateEveryone === true) {
+		content = `@everyone: Nouveau jeu gratuit !\n*${gamename}* gratuit sur ${provider}, à l'adresse suivante : ${gameUrl.href} !`;
+	} else {
+		content = `Nouveau jeu gratuit !\n*${gamename}* gratuit sur ${provider}, à l'adresse suivante : ${gameUrl.href} !`
+	}
+
 	return JSON.stringify(
 	{
-		"content":`@everyone: Nouveau jeu gratuit !\n*${gamename}* gratuit sur ${provider}, à l'adresse suivante : ${gameUrl.href} !`,
+		"content":content,
 		"username":"TinkBot",
 		"avatar_url":"https://i.imgur.com/d3E5Gly.jpg",
 		"embeds": [
@@ -118,6 +131,11 @@ function buildWebhookMsg(gameUrl) {
 						"name":"Le jeu m'appartiendra-t-il pour toujours ?",
 						"value":`Oui, le jeu reste dans votre bibliothèque de jeux, même après la date limite. Il faut juste "l'acheter" une fois sur ${provider} :-)`,
 						"inline":false
+					},
+					{
+						"name": ":salad: ?",
+						"value": ":salad:.",
+						"inline": false
 					}
 				]
 			}
@@ -131,9 +149,8 @@ fs.readFile('./webhooks.json', 'utf8', (err, webh) => {
 	let webhookData = JSON.parse(webh);
 
 	rl.question('Input URL: ', (gUrl) => {
-		let mes = buildWebhookMsg(gUrl);
-
 		for (let i in webhookData.guilds) {
+			let mes = buildWebhookMsg(gUrl, webhookData.guilds[i].everyone);
 			let webhookUrl = new URL(webhookData.guilds[i].webhookUrl);
 			webhookUrl = webhookUrl.pathname;
 			// Send the HTTP POST request to Discord

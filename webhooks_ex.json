@@ -1,8 +1,15 @@
 {
+    "__comment":  "THIS FILE IS AN EXAMPLE FILE, AND WILL NOT WORK PROPERLY IF YOU SIMPLY RENAME IT. You must change its fields accordingly",
+    "___comment": "to the URL and names you were given, etc. Moreover, any field labeled 'comment' or containing this field are not used while",
+    "____comment":"processing the data. You can erase them if you want.",
 	"guilds": [
 		{
-			"webhookUrl": "WEBHOOK_URL",
+            "everyone": true,
+            "_comment": "The above 'everyone' field is used to change whether or not the webhook should mention @everyone",
+            "__comment": "True = mentions @everyone -- False = doesn't mention @everyone",
+            "webhookUrl": "https://discordapp.com/api/webhooks/WEBHOOK_ID/WEBHOOK_TOKEN",
+            "___comment": "The above 'webhookUrl' field is were you put the webhook's url you get when creating a webhook.",
 			"name": "GUILD_NAME (doesn't really matter, as it is only used in console)"
 		}
-	]
+    ]
 }
