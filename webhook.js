@@ -167,15 +167,15 @@ fs.readFile('./webhooks.json', 'utf8', (err, webh) => {
 	let webhookData = JSON.parse(webh);
 
 	rl.question('Input URL: ', (gUrl) => {
-		// for (let i in webhookData.guilds) {
-			let mes = buildWebhookMsg(gUrl, webhookData.guilds[0].everyone, webhookData.guilds[0].lang);
-			let webhookUrl = new URL(webhookData.guilds[0].webhookUrl);
+		for (let i in webhookData.guilds) {
+			let mes = buildWebhookMsg(gUrl, webhookData.guilds[i].everyone, webhookData.guilds[i].lang);
+			let webhookUrl = new URL(webhookData.guilds[i].webhookUrl);
 			webhookUrl = webhookUrl.pathname;
 			// Send the HTTP POST request to Discord
 			request(webhookUrl, mes);
 			// Notify the console user
-			console.log(`\nNotification sent to '${webhookData.guilds[0].name}'!\n`);
-		// }
+			console.log(`\nNotification sent to '${webhookData.guilds[i].name}'!\n`);
+		}
 
 		rl.close();
 	})
