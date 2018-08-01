@@ -9,6 +9,8 @@
             "__comment": "True = mentions @everyone -- False = doesn't mention @everyone",
             "webhookUrl": "https://discordapp.com/api/webhooks/WEBHOOK_ID/WEBHOOK_TOKEN",
             "___comment": "The above 'webhookUrl' field is were you put the webhook's url you get when creating a webhook.",
+            "lang": "FR|EN|US",
+            "____comment": "You can use any of the above language",
 			"name": "GUILD_NAME (doesn't really matter, as it is only used in console)"
 		}
     ]

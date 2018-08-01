@@ -67,15 +67,12 @@ function capitalize(string) {
 	return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-// buildWebhookMsg(gameUrl[, activateEveryone])
-function buildWebhookMsg(gameUrl, activateEveryone=true) {
+// buildWebhookMsg(gameUrl[, activateEveryone=true])
+function buildWebhookMsg(gameUrl, activateEveryone=true, lang="FR") {
 	gameUrl = new URL(gameUrl);
 	let re = /^\/app\/([0-9]+)\/(\w+)\/$/i;
 	let path = gameUrl.pathname;
-	let gamename = "";
-	let provider = "";
-	let content = "";
-	let thumbnail;
+	let gamename, provider, content, thumbnail, mainTitl, mainDesc, valueTitle1, valueTitle2, valueText1, valueText2;
 
 	if (gameUrl.href.startsWith("https://www.humblebundle.com/store/")) { // Humble Bundle
 		gamename = path.substr(7);
@@ -101,13 +98,34 @@ function buildWebhookMsg(gameUrl, activateEveryone=true) {
 	}
 
 	gamename = capitalize(gamename);
-	gamename = gamename.replace(/_/gi, ' ');
-
-	if (activateEveryone === true) {
-		content = `@everyone: Nouveau jeu gratuit !\n*${gamename}* gratuit sur ${provider}, à l'adresse suivante : ${gameUrl.href} !`;
+	if (provider == "Humble Bundle") {
+		gamename = gamename.replace(/-/gi, ' ');
 	} else {
-		content = `Nouveau jeu gratuit !\n*${gamename}* gratuit sur ${provider}, à l'adresse suivante : ${gameUrl.href} !`
+		gamename = gamename.replace(/_/gi, ' ');
 	}
+
+	if (lang == "FR") {
+		content = `Nouveau jeu gratuit !\n*${gamename}* gratuit sur ${provider} à l'adresse suivante : ${gameUrl.href} !`;
+		mainTitl = `${gamename} gratuit sur ${provider} !`;
+		mainDesc = `${gamename} est gratuit sur ${provider} pendant une durée limitée [ici](${gameUrl.href})`;
+		valueTitle1 = "Pendant combien de temps le jeu est-il gratuit ?";
+		valueText1 = `Le jeu est gratuit jusqu'à une date limite visible sur [la page du jeu](${gameUrl.href}).`;
+		valueTitle2 = "Le jeu m'appartiendra-t-il pour toujours ?";
+		valueText2 = `Oui, le jeu reste dans votre bibliothèque de jeux, même après la date limite. Il faut juste "l'acheter" une fois sur ${provider} :-)`;
+	} else if (lang == "EN" || lang == "US") {
+		content = `New free game!\n*${gamename}* is currently free on ${provider} at this adress: ${gameUrl.href}!`;
+		mainTitl = `${gamename} is free on ${provider}!`;
+		mainDesc = `${gamename} is currently free on ${provider} for a limited time [here](${gameUrl.href})`;
+		valueTitle1 = "For how long will the game be free?";
+		valueText1 = `The game is free until a specified date available on the [game page](${gameUrl.href}).`;
+		valueTitle2 = "Will I get to keep the game?";
+		valueText2 = `Yes, the game stays in your game library, even after the specified date. You just need to "buy" it once on ${provider} :-)`;
+	} else {
+		console.error("ERROR: Unrecognized language!");
+		process.exit;
+	}
+
+	if (activateEveryone === true) content = '@everyone: ' + content;
 
 	return JSON.stringify(
 	{
@@ -116,20 +134,20 @@ function buildWebhookMsg(gameUrl, activateEveryone=true) {
 		"avatar_url":"https://i.imgur.com/d3E5Gly.jpg",
 		"embeds": [
 			{
-				"title":`${gamename} gratuit sur ${provider} !`,
-				"description":`${gamename} est gratuit sur ${provider} pendant une durée limitée [ici](${gameUrl.href})`,
+				"title":mainTitl,
+				"description":mainDesc,
 				"url":gameUrl.href,
 				"color":getRandomInt(0, 16777215),
-				"thumbnail": thumbnail,
-				"fields": [
+				"thumbnail":thumbnail,
+				"fields":[
 					{
-						"name":"Pendant combien de temps le jeu est-il gratuit ?",
-						"value":`Le jeu est gratuit jusqu'à une date limite visible sur [la page du jeu](${gameUrl.href}).`,
+						"name":valueTitle1,
+						"value":valueText1,
 						"inline":false
 					},
 					{
-						"name":"Le jeu m'appartiendra-t-il pour toujours ?",
-						"value":`Oui, le jeu reste dans votre bibliothèque de jeux, même après la date limite. Il faut juste "l'acheter" une fois sur ${provider} :-)`,
+						"name":valueTitle2,
+						"value":valueText2,
 						"inline":false
 					},
 					{
@@ -149,15 +167,15 @@ fs.readFile('./webhooks.json', 'utf8', (err, webh) => {
 	let webhookData = JSON.parse(webh);
 
 	rl.question('Input URL: ', (gUrl) => {
-		for (let i in webhookData.guilds) {
-			let mes = buildWebhookMsg(gUrl, webhookData.guilds[i].everyone);
-			let webhookUrl = new URL(webhookData.guilds[i].webhookUrl);
+		// for (let i in webhookData.guilds) {
+			let mes = buildWebhookMsg(gUrl, webhookData.guilds[0].everyone, webhookData.guilds[0].lang);
+			let webhookUrl = new URL(webhookData.guilds[0].webhookUrl);
 			webhookUrl = webhookUrl.pathname;
 			// Send the HTTP POST request to Discord
 			request(webhookUrl, mes);
 			// Notify the console user
-			console.log(`\nNotification sent to '${webhookData.guilds[i].name}'!\n`);
-		}
+			console.log(`\nNotification sent to '${webhookData.guilds[0].name}'!\n`);
+		// }
 
 		rl.close();
 	})
